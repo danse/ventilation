@@ -81,10 +81,17 @@ lib/
 3. `/analysis?id=…` re-reads the line from storage and renders the full panel
    grid for it.
 
-## Deploy on Vercel
+## Deploy to GitHub Pages
 
-The easiest way to deploy is the
-[Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
+The app is configured for static export (`output: "export"` in
+`next.config.ts`). A GitHub Actions workflow (`.github/workflows/deploy.yml`)
+builds it with `NEXT_PUBLIC_BASE_PATH=/<repo>` and deploys to GitHub Pages on
+every push to `main`.
+
+1. In repo **Settings → Pages → Source**, select **GitHub Actions**.
+2. Push to `main`; the site appears at `https://<user>.github.io/<repo>/`.
+
+To build locally: `NEXT_PUBLIC_BASE_PATH=/<repo> pnpm build` (output in `out/`).
 
 Note: because state lives in `localStorage`, each visitor's lines stay in their
 own browser.
