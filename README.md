@@ -1,5 +1,7 @@
 # Ventilation — NLP Playground
 
+[Demo](https://danse.github.io/ventilation/)
+
 A browser-only natural language processing playground built with **Next.js 16**,
 **Tailwind CSS v4**, and **[compromise.js](https://compromise.cool)**. Everything
 runs locally on your device — no API keys, no network calls, no server-side NLP.
