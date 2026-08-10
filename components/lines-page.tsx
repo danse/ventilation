@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useLocalStorage } from "@/components/use-local-storage";
+import { useSpeechRecognition } from "@/components/use-speech-recognition";
 import { DRAFT_KEY, LINES_KEY, type StoredLine } from "@/lib/storage";
 import { MAX_INPUT_LENGTH, SAMPLE_TEXT, tagTokens } from "@/lib/nlp";
 import { PosStream } from "@/components/pos-stream";
@@ -58,6 +59,19 @@ export function LinesPage() {
   const [lines, setLines, linesReady] = useLocalStorage<StoredLine[]>(LINES_KEY, []);
   const [draft, setDraft, draftReady] = useLocalStorage<string>(DRAFT_KEY, "");
 
+  const appendToDraft = useCallback(
+    (text: string) => {
+      setDraft((current) => {
+        const joined = current.trimEnd()
+          ? `${current.trimEnd()} ${text}`
+          : text;
+        return joined.slice(0, MAX_INPUT_LENGTH);
+      });
+    },
+    [setDraft],
+  );
+
+  const speech = useSpeechRecognition({ onFinal: appendToDraft });
   const draftWords = draft.trim() ? draft.trim().split(/\s+/).length : 0;
 
   function addLines() {
@@ -105,6 +119,27 @@ export function LinesPage() {
               spellCheck={false}
               className="block min-h-36 w-full resize-y bg-transparent px-4 py-3 text-sm leading-6 text-zinc-100 placeholder-zinc-600 outline-none"
             />
+            {(speech.status === "listening" ||
+              speech.status === "transcribing" ||
+              speech.error) && (
+              <div className="flex items-center gap-2 border-t border-white/10 bg-black/20 px-4 py-2 text-xs text-zinc-400">
+                <span
+                  className={
+                    speech.status === "listening" || speech.status === "transcribing"
+                      ? "h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
+                      : "h-2 w-2 shrink-0 rounded-full bg-rose-500/60"
+                  }
+                  aria-hidden="true"
+                />
+                {speech.error
+                  ? speech.error
+                  : speech.status === "transcribing"
+                    ? "Transcribing audio… (first use downloads a small speech model)"
+                    : speech.interim
+                      ? `Listening… "${speech.interim}"`
+                      : "Listening… speak, then click the mic to stop"}
+              </div>
+            )}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/20 px-4 py-2">
               <div className="flex flex-wrap gap-2">
                 <button
@@ -126,6 +161,49 @@ export function LinesPage() {
                   className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-white/25 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Clear draft
+                </button>
+                <button
+                  onClick={speech.toggle}
+                  disabled={!speech.supported}
+                  aria-pressed={
+                    speech.status === "listening" || speech.status === "transcribing"
+                  }
+                  title={
+                    !speech.supported
+                      ? "Speech input isn't supported in this browser"
+                      : speech.status === "listening"
+                        ? "Stop listening"
+                        : speech.status === "transcribing"
+                          ? "Transcribing…"
+                          : "Dictate a line (first use downloads a small speech model)"
+                  }
+                  className={
+                    speech.status === "listening" || speech.status === "transcribing"
+                      ? "flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-rose-500 to-red-500 px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
+                      : "flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-white/25 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  }
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-3.5 w-3.5"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <path d="M12 19v3" />
+                  </svg>
+                  {speech.status === "transcribing"
+                    ? "Transcribing…"
+                    : speech.status === "listening"
+                      ? "Listening…"
+                      : !speech.supported
+                        ? "Speech unavailable"
+                        : "Dictate"}
                 </button>
               </div>
               <div className="text-xs tabular-nums text-zinc-500">
