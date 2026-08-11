@@ -23,12 +23,14 @@ function LineCard({
   index,
   selected,
   onToggleSelect,
+  onEdit,
   onDelete,
 }: {
   line: StoredLine;
   index: number;
   selected: boolean;
   onToggleSelect: () => void;
+  onEdit?: () => void;
   onDelete: () => void;
 }) {
   const tokens = useMemo(() => tagTokens(line.text)?.posTokens ?? [], [line.text]);
@@ -75,6 +77,15 @@ function LineCard({
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              title="Move back to the input for editing"
+              className="text-xs text-zinc-500 transition hover:text-sky-300"
+            >
+              Edit
+            </button>
+          )}
           <Link
             href={`/analysis?id=${line.id}`}
             className="text-xs font-medium text-violet-300 transition hover:text-violet-200"
@@ -191,6 +202,11 @@ export function LinesPage() {
       next.delete(id);
       return next;
     });
+  }
+
+  function editLine(line: StoredLine) {
+    setDraft(line.text);
+    deleteLine(line.id);
   }
 
   function deleteDocument(id: string) {
@@ -437,6 +453,7 @@ export function LinesPage() {
                     index={i}
                     selected={selected.has(line.id)}
                     onToggleSelect={() => toggleSelect(line.id)}
+                    onEdit={i === 0 ? () => editLine(line) : undefined}
                     onDelete={() => deleteLine(line.id)}
                   />
                 ))}
