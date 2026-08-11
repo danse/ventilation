@@ -18,6 +18,7 @@ async function loadTranscriber(
   if (!transcriberPromise) {
     transcriberPromise = import("@huggingface/transformers").then(({ pipeline }) =>
       pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", {
+        dtype: "q8",
         progress_callback: (info) => {
           const { status, progress } = info as {
             status?: string;
