@@ -24,9 +24,9 @@ async function loadTranscriber(
             status?: string;
             progress?: number;
           };
-          if (status === "progress_total" || status === "progress") {
+          if (status === "progress_total") {
             if (typeof progress === "number") onProgress(progress);
-          } else if (status === "done" || status === "ready") {
+          } else if (status === "ready") {
             onProgress(null);
           }
         },
