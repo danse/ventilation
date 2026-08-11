@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useLocalStorage } from "@/components/use-local-storage";
 import { useSpeechRecognition } from "@/components/use-speech-recognition";
-import { DRAFT_KEY, LINES_KEY, type StoredLine } from "@/lib/storage";
+import { DRAFT_KEY, LINES_KEY, formatLineTimestamp, type StoredLine } from "@/lib/storage";
 import { MAX_INPUT_LENGTH, SAMPLE_TEXT, tagTokens } from "@/lib/nlp";
 import { PosStream } from "@/components/pos-stream";
 import { SiteHeader } from "@/components/site-header";
@@ -21,6 +21,7 @@ function LineCard({
 }) {
   const tokens = useMemo(() => tagTokens(line.text)?.posTokens ?? [], [line.text]);
   const words = line.text.trim() ? line.text.trim().split(/\s+/).length : 0;
+  const timestamp = formatLineTimestamp(line.createdAt);
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/25 hover:bg-white/[0.05]">
@@ -31,6 +32,7 @@ function LineCard({
           </span>
           <span className="text-xs tabular-nums text-zinc-500">
             {words} words · {line.text.length} chars
+            {timestamp ? ` · ${timestamp}` : ""}
           </span>
         </div>
         <div className="flex items-center gap-3">

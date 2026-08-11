@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocalStorage } from "@/components/use-local-storage";
-import { LINES_KEY, type StoredLine } from "@/lib/storage";
+import { LINES_KEY, formatLineTimestamp, type StoredLine } from "@/lib/storage";
 import { analyze, TRANSFORMS } from "@/lib/nlp";
 import {
   ContactsPanel,
@@ -58,6 +58,11 @@ export function AnalysisPage() {
               <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
                 Full analysis
               </h2>
+              {formatLineTimestamp(line.createdAt) && (
+                <p className="mt-1 text-xs tabular-nums text-zinc-500">
+                  Entered {formatLineTimestamp(line.createdAt)}
+                </p>
+              )}
               <p className="mt-2 max-w-3xl rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-6 text-zinc-300">
                 {line.text}
               </p>
