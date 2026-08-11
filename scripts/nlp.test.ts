@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { analyze, SAMPLE_TEXT, TRANSFORMS, MAX_INPUT_LENGTH, tagTokens } from "../lib/nlp.ts";
+import { buildDocumentTitle, MAX_TITLE_LENGTH } from "../lib/storage.ts";
 
 describe("analyze()", () => {
   const analysis = analyze(SAMPLE_TEXT);
@@ -108,5 +109,29 @@ describe("MAX_INPUT_LENGTH", () => {
   it("is a positive finite number", () => {
     assert.ok(Number.isFinite(MAX_INPUT_LENGTH));
     assert.ok(MAX_INPUT_LENGTH > 0);
+  });
+});
+
+describe("buildDocumentTitle()", () => {
+  it("uses the first non-empty line, trimmed", () => {
+    assert.equal(
+      buildDocumentTitle("  First thought\n\nSecond thought"),
+      "First thought",
+    );
+  });
+
+  it("truncates long titles with an ellipsis", () => {
+    const long = "a".repeat(MAX_TITLE_LENGTH + 20);
+    const title = buildDocumentTitle(long);
+    assert.ok(title.endsWith("…"));
+    assert.ok(title.length <= MAX_TITLE_LENGTH + 1);
+  });
+
+  it("keeps short titles intact", () => {
+    assert.equal(buildDocumentTitle("Short"), "Short");
+  });
+
+  it("falls back to empty string when there is no text", () => {
+    assert.equal(buildDocumentTitle("   \n  "), "");
   });
 });

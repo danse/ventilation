@@ -4,8 +4,29 @@ export interface StoredLine {
   createdAt: number;
 }
 
+export interface StoredDocument {
+  id: string;
+  title: string;
+  createdAt: number;
+  text: string;
+}
+
 export const LINES_KEY = "ventilation:lines";
 export const DRAFT_KEY = "ventilation:draft";
+export const DOCUMENTS_KEY = "ventilation:documents";
+
+export const MAX_TITLE_LENGTH = 60;
+
+/**
+ * Derives a document title from its merged text: the first line, trimmed
+ * and truncated to {@link MAX_TITLE_LENGTH} characters.
+ */
+export function buildDocumentTitle(text: string): string {
+  const first = text.split("\n").map((s) => s.trim()).find(Boolean) ?? "";
+  return first.length <= MAX_TITLE_LENGTH
+    ? first
+    : `${first.slice(0, MAX_TITLE_LENGTH).trimEnd()}…`;
+}
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { timeStyle: "short" });
 const dayFormat = new Intl.DateTimeFormat(undefined, {
