@@ -96,31 +96,3 @@ export function Stat({
     </div>
   );
 }
-
-export function RankedList({
-  items,
-  tone = "bg-violet-500/70",
-}: {
-  items: { value: string; count: number }[];
-  tone?: string;
-}) {
-  const max = Math.max(1, ...items.map((i) => i.count));
-  return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.value} className="flex items-center gap-3">
-          <span className="w-1/2 truncate text-sm text-zinc-200">{item.value}</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/5">
-            <div
-              className={`h-full rounded-full ${tone}`}
-              style={{ width: `${Math.max(6, (item.count / max) * 100)}%` }}
-            />
-          </div>
-          <span className="w-6 text-right text-xs tabular-nums text-zinc-500">
-            {item.count}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}

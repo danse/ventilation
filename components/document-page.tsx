@@ -10,18 +10,8 @@ import {
   formatLineTimestamp,
   type StoredDocument,
 } from "@/lib/storage";
-import { analyze, TRANSFORMS } from "@/lib/nlp";
-import {
-  ContactsPanel,
-  EntitiesPanel,
-  NounsVerbsPanel,
-  OverviewPanel,
-  PosPanel,
-  SentimentPanel,
-  TopicsPanel,
-  TransformsPanel,
-  ValuesPanel,
-} from "@/components/panels";
+import { analyze } from "@/lib/nlp";
+import { OverviewPanel, SentimentPanel } from "@/components/panels";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -143,13 +133,6 @@ export function DocumentPage() {
             <section className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               <OverviewPanel analysis={analysis} />
               <SentimentPanel analysis={analysis} />
-              <PosPanel analysis={analysis} />
-              <EntitiesPanel analysis={analysis} />
-              <TopicsPanel analysis={analysis} />
-              <ValuesPanel analysis={analysis} />
-              <NounsVerbsPanel analysis={analysis} />
-              <ContactsPanel analysis={analysis} />
-              <TransformsPanel transforms={TRANSFORMS} text={document.text} />
             </section>
 
             <SiteFooter />
