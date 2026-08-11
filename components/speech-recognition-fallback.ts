@@ -1,10 +1,9 @@
 "use client";
 
 import type { SpeechEngine, SpeechEngineEvents } from "@/components/use-speech-recognition";
+import { TranscriberManager } from "../lib/speech-model.ts";
+import type { ModelLoader, Transcriber } from "../lib/speech-model.ts";
 
-type Transcriber = (audio: Float32Array) => Promise<{ text?: string }>;
-
-let transcriberPromise: Promise<Transcriber> | null = null;
 let audioContext: AudioContext | null = null;
 
 function getAudioContext() {
@@ -12,33 +11,23 @@ function getAudioContext() {
   return audioContext;
 }
 
-async function loadTranscriber(
-  onProgress: (percent: number | null) => void,
-): Promise<Transcriber> {
-  if (!transcriberPromise) {
-    transcriberPromise = import("@huggingface/transformers").then(({ pipeline }) =>
-      pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", {
-        dtype: "q8",
-        progress_callback: (info) => {
-          const { status, progress } = info as {
-            status?: string;
-            progress?: number;
-          };
-          if (status === "progress_total") {
-            if (typeof progress === "number") onProgress(progress);
-          } else if (status === "ready") {
-            onProgress(null);
-          }
-        },
-      }) as unknown as Promise<Transcriber>,
-    );
+const defaultModelLoader: ModelLoader = (onProgress) =>
+  import("@huggingface/transformers").then(({ pipeline }) =>
+    pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", {
+      dtype: "q8",
+      progress_callback: onProgress,
+    }) as unknown as Promise<Transcriber>,
+  );
+
+const managersByLoader = new WeakMap<ModelLoader, TranscriberManager>();
+
+function getManager(loadModel: ModelLoader): TranscriberManager {
+  let manager = managersByLoader.get(loadModel);
+  if (!manager) {
+    manager = new TranscriberManager(loadModel);
+    managersByLoader.set(loadModel, manager);
   }
-  try {
-    return await transcriberPromise;
-  } catch (error) {
-    transcriberPromise = null;
-    throw error;
-  }
+  return manager;
 }
 
 async function resampleToMono16k(buffer: AudioBuffer): Promise<Float32Array> {
@@ -55,11 +44,22 @@ async function resampleToMono16k(buffer: AudioBuffer): Promise<Float32Array> {
   return rendered.getChannelData(0);
 }
 
-export function createFallbackEngine(events: SpeechEngineEvents): SpeechEngine {
+export function createFallbackEngine(
+  events: SpeechEngineEvents,
+  loadModel: ModelLoader = defaultModelLoader,
+): SpeechEngine {
   let stream: MediaStream | null = null;
   let recorder: MediaRecorder | null = null;
   let chunks: Blob[] = [];
   let active = false;
+
+  const manager = getManager(loadModel);
+
+  function loadTranscriber(
+    onProgress: (percent: number | null) => void,
+  ): Promise<Transcriber> {
+    return manager.get(onProgress);
+  }
 
   function pickMime(): string | undefined {
     for (const mime of ["audio/webm", "audio/mp4"]) {
@@ -163,31 +163,18 @@ export function createFallbackEngine(events: SpeechEngineEvents): SpeechEngine {
       recorder = null;
     },
     clearModel: async () => {
-      transcriberPromise = null;
-      let cleared = false;
+      manager.reset();
       try {
-        const { env } = await import("@huggingface/transformers");
-        const cache = await caches.open(env.cacheKey);
+        if (typeof caches === "undefined") return true;
+        const cache = await caches.open("transformers-cache");
         const keys = await cache.keys();
         const ours = keys.filter((key) =>
           key.url.includes("Xenova/whisper-tiny.en"),
         );
         await Promise.all(ours.map((key) => cache.delete(key)));
-        cleared = ours.length > 0;
       } catch {
-        // fall through to the pipeline-level clear below
-      }
-      if (!cleared) {
-        try {
-          const { ModelRegistry } = await import("@huggingface/transformers");
-          await ModelRegistry.clear_pipeline_cache(
-            "automatic-speech-recognition",
-            "Xenova/whisper-tiny.en",
-            { dtype: "q8" },
-          );
-        } catch {
-          // in-memory reset above already forces a fresh download
-        }
+        // Cache Storage unavailable; the in-memory reset already forces a
+        // fresh download.
       }
       return true;
     },

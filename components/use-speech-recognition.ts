@@ -4,11 +4,15 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
-  useState,
   useSyncExternalStore,
 } from "react";
 import { createFallbackEngine } from "@/components/speech-recognition-fallback";
+import {
+  INITIAL_SPEECH_STATE,
+  speechReducer,
+} from "@/lib/speech-state";
 
 export type SpeechStatus = "idle" | "listening" | "transcribing";
 
@@ -38,12 +42,7 @@ function useHydrated() {
 }
 
 export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => void }) {
-  const [status, setStatus] = useState<SpeechStatus>("idle");
-  const [interim, setInterim] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [modelError, setModelError] = useState(false);
-  const [progress, setProgress] = useState<number | null>(null);
-  const [detail, setDetail] = useState<string | null>(null);
+  const [speech, dispatch] = useReducer(speechReducer, INITIAL_SPEECH_STATE);
   const hydrated = useHydrated();
   const engineRef = useRef<SpeechEngine | null>(null);
   const onFinalRef = useRef(onFinal);
@@ -73,30 +72,18 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
 
     const events: SpeechEngineEvents = {
       onFinal: (text) => onFinalRef.current(text),
-      onInterim: setInterim,
-      onTranscribing: () => {
-        setStatus("transcribing");
-        setInterim("");
-        setDetail(null);
-        setProgress(null);
-        setModelError(false);
-      },
-      onModelProgress: setProgress,
-      onDetail: setDetail,
-      onEnd: () => {
-        setStatus("idle");
-        setInterim("");
-        setDetail(null);
-        setProgress(null);
-      },
-      onError: (message, options) => {
-        setStatus("idle");
-        setInterim("");
-        setDetail(null);
-        setProgress(null);
-        setModelError(options?.model ?? false);
-        setError(message);
-      },
+      onInterim: (text) => dispatch({ type: "interim", text }),
+      onTranscribing: () => dispatch({ type: "transcribing" }),
+      onModelProgress: (percent) =>
+        dispatch({ type: "modelProgress", percent }),
+      onDetail: (message) => dispatch({ type: "detail", message }),
+      onEnd: () => dispatch({ type: "end" }),
+      onError: (message, options) =>
+        dispatch({
+          type: "error",
+          message,
+          model: options?.model ?? false,
+        }),
     };
 
     const engine = nativeSupported
@@ -115,28 +102,20 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
   const toggle = useCallback(() => {
     const engine = engineRef.current;
     if (!engine) return;
-    if (status === "listening" || status === "transcribing") {
+    if (speech.status === "listening" || speech.status === "transcribing") {
       engine.stop();
       return;
     }
-    setError(null);
-    setInterim("");
-    setDetail(null);
-    setProgress(null);
-    setModelError(false);
-    setStatus("listening");
+    dispatch({ type: "start" });
     engine.start();
-  }, [status]);
+  }, [speech.status]);
 
   const clearModel = useCallback(async () => {
     const engine = engineRef.current;
     if (!engine?.clearModel) return false;
     try {
       const ok = await engine.clearModel();
-      if (ok) {
-        setError(null);
-        setModelError(false);
-      }
+      if (ok) dispatch({ type: "clearModel" });
       return ok;
     } catch {
       return false;
@@ -144,12 +123,12 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
   }, []);
 
   return {
-    status,
-    interim,
-    error,
-    modelError,
-    progress,
-    detail,
+    status: speech.status,
+    interim: speech.interim,
+    error: speech.error,
+    modelError: speech.modelError,
+    progress: speech.progress,
+    detail: speech.detail,
     supported,
     toggle,
     clearModel,
