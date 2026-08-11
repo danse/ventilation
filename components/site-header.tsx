@@ -14,6 +14,12 @@ export function SiteHeader({ backHref, backLabel }: { backHref?: string; backLab
           </div>
         </Link>
         <div className="flex items-center gap-3">
+          <Link
+            href="/speech-debug"
+            className="text-xs text-zinc-400 transition hover:text-zinc-200"
+          >
+            Model diagnostics
+          </Link>
           {backHref ? (
             <Link
               href={backHref}
