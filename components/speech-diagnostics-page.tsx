@@ -257,13 +257,13 @@ export function SpeechDiagnosticsPage() {
       const { pipeline } = await import("@huggingface/transformers");
       push(
         "info",
-        `pipeline("automatic-speech-recognition", "${MODEL}", { dtype: "q8" })`,
+        `pipeline("automatic-speech-recognition", "${MODEL}", { dtype: "fp32" })`,
       );
       const transcriber = await pipeline(
         "automatic-speech-recognition",
         MODEL,
         {
-          dtype: "q8",
+          dtype: "fp32",
           progress_callback: (info: ProgressInfo) => {
             if (info.status === "progress" && info.file) {
               const text = `${info.file} — ${info.progress}% (${fmtBytes(info.loaded ?? 0)} / ${fmtBytes(info.total ?? 0)})`;

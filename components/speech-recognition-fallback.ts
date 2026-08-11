@@ -14,7 +14,7 @@ function getAudioContext() {
 const defaultModelLoader: ModelLoader = (onProgress) =>
   import("@huggingface/transformers").then(({ pipeline }) =>
     pipeline("automatic-speech-recognition", "Xenova/whisper-tiny.en", {
-      dtype: "q8",
+      dtype: "fp32",
       progress_callback: onProgress,
     }) as unknown as Promise<Transcriber>,
   );
