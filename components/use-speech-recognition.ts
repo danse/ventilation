@@ -79,6 +79,7 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
         setInterim("");
         setDetail(null);
         setProgress(null);
+        setModelError(false);
       },
       onModelProgress: setProgress,
       onDetail: setDetail,
@@ -87,7 +88,6 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
         setInterim("");
         setDetail(null);
         setProgress(null);
-        setModelError(false);
       },
       onError: (message, options) => {
         setStatus("idle");
