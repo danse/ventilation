@@ -109,6 +109,7 @@ export function createFallbackEngine(events: SpeechEngineEvents): SpeechEngine {
                 error instanceof Error ? error.message : String(error);
               events.onError(
                 `Could not load the speech model — ${reason.slice(0, 300)}`,
+                { model: true },
               );
               finish();
               return;
@@ -160,6 +161,35 @@ export function createFallbackEngine(events: SpeechEngineEvents): SpeechEngine {
       stream?.getTracks().forEach((track) => track.stop());
       stream = null;
       recorder = null;
+    },
+    clearModel: async () => {
+      transcriberPromise = null;
+      let cleared = false;
+      try {
+        const { env } = await import("@huggingface/transformers");
+        const cache = await caches.open(env.cacheKey);
+        const keys = await cache.keys();
+        const ours = keys.filter((key) =>
+          key.url.includes("Xenova/whisper-tiny.en"),
+        );
+        await Promise.all(ours.map((key) => cache.delete(key)));
+        cleared = ours.length > 0;
+      } catch {
+        // fall through to the pipeline-level clear below
+      }
+      if (!cleared) {
+        try {
+          const { ModelRegistry } = await import("@huggingface/transformers");
+          await ModelRegistry.clear_pipeline_cache(
+            "automatic-speech-recognition",
+            "Xenova/whisper-tiny.en",
+            { dtype: "q8" },
+          );
+        } catch {
+          // in-memory reset above already forces a fresh download
+        }
+      }
+      return true;
     },
   };
 }

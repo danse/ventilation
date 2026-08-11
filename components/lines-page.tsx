@@ -152,21 +152,31 @@ export function LinesPage() {
                       </div>
                     )}
                   </div>
+                ) : speech.error ? (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full bg-rose-500/60"
+                      aria-hidden="true"
+                    />
+                    <span>{speech.error}</span>
+                    {speech.modelError && (
+                      <button
+                        onClick={() => void speech.clearModel()}
+                        className="ml-auto shrink-0 rounded border border-white/15 bg-white/5 px-2 py-0.5 text-[11px] font-medium text-zinc-300 transition hover:border-white/30 hover:bg-white/10"
+                      >
+                        Remove model
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span
-                      className={
-                        speech.status === "listening"
-                          ? "h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
-                          : "h-2 w-2 shrink-0 rounded-full bg-rose-500/60"
-                      }
+                      className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
                       aria-hidden="true"
                     />
-                    {speech.error
-                      ? speech.error
-                      : speech.interim
-                        ? `Listening… "${speech.interim}"`
-                        : "Listening… speak, then click the mic to stop"}
+                    {speech.interim
+                      ? `Listening… "${speech.interim}"`
+                      : "Listening… speak, then click the mic to stop"}
                   </div>
                 )}
               </div>

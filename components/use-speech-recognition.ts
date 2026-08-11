@@ -19,13 +19,14 @@ export interface SpeechEngineEvents {
   onModelProgress: (percent: number | null) => void;
   onDetail: (message: string) => void;
   onEnd: () => void;
-  onError: (message: string) => void;
+  onError: (message: string, options?: { model?: boolean }) => void;
 }
 
 export interface SpeechEngine {
   start(): void;
   stop(): void;
   dispose(): void;
+  clearModel?: () => Promise<boolean>;
 }
 
 function useHydrated() {
@@ -40,6 +41,7 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
   const [status, setStatus] = useState<SpeechStatus>("idle");
   const [interim, setInterim] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [modelError, setModelError] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
   const hydrated = useHydrated();
@@ -85,12 +87,14 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
         setInterim("");
         setDetail(null);
         setProgress(null);
+        setModelError(false);
       },
-      onError: (message) => {
+      onError: (message, options) => {
         setStatus("idle");
         setInterim("");
         setDetail(null);
         setProgress(null);
+        setModelError(options?.model ?? false);
         setError(message);
       },
     };
@@ -119,11 +123,37 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
     setInterim("");
     setDetail(null);
     setProgress(null);
+    setModelError(false);
     setStatus("listening");
     engine.start();
   }, [status]);
 
-  return { status, interim, error, progress, detail, supported, toggle };
+  const clearModel = useCallback(async () => {
+    const engine = engineRef.current;
+    if (!engine?.clearModel) return false;
+    try {
+      const ok = await engine.clearModel();
+      if (ok) {
+        setError(null);
+        setModelError(false);
+      }
+      return ok;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  return {
+    status,
+    interim,
+    error,
+    modelError,
+    progress,
+    detail,
+    supported,
+    toggle,
+    clearModel,
+  };
 }
 
 export function createNativeEngine(events: SpeechEngineEvents): SpeechEngine {
