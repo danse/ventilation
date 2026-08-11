@@ -191,7 +191,7 @@ export function LinesPage() {
       text,
       createdAt: now + i,
     }));
-    setLines([...next, ...lines]);
+    setLines([...next.reverse(), ...lines]);
     setDraft("");
   }
 
