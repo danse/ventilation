@@ -103,9 +103,11 @@ export function createFallbackEngine(events: SpeechEngineEvents): SpeechEngine {
             let transcriber: Transcriber;
             try {
               transcriber = await loadTranscriber(events.onModelProgress);
-            } catch {
+            } catch (error) {
+              const reason =
+                error instanceof Error ? error.message : String(error);
               events.onError(
-                "Could not download the speech model — check your connection and try again.",
+                `Could not load the speech model — ${reason.slice(0, 300)}`,
               );
               finish();
               return;
