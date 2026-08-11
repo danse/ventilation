@@ -16,6 +16,8 @@ export interface SpeechEngineEvents {
   onFinal: (text: string) => void;
   onInterim: (text: string) => void;
   onTranscribing: () => void;
+  onModelProgress: (percent: number | null) => void;
+  onDetail: (message: string) => void;
   onEnd: () => void;
   onError: (message: string) => void;
 }
@@ -38,6 +40,8 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
   const [status, setStatus] = useState<SpeechStatus>("idle");
   const [interim, setInterim] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const hydrated = useHydrated();
   const engineRef = useRef<SpeechEngine | null>(null);
   const onFinalRef = useRef(onFinal);
@@ -71,14 +75,22 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
       onTranscribing: () => {
         setStatus("transcribing");
         setInterim("");
+        setDetail(null);
+        setProgress(null);
       },
+      onModelProgress: setProgress,
+      onDetail: setDetail,
       onEnd: () => {
         setStatus("idle");
         setInterim("");
+        setDetail(null);
+        setProgress(null);
       },
       onError: (message) => {
         setStatus("idle");
         setInterim("");
+        setDetail(null);
+        setProgress(null);
         setError(message);
       },
     };
@@ -105,11 +117,13 @@ export function useSpeechRecognition({ onFinal }: { onFinal: (text: string) => v
     }
     setError(null);
     setInterim("");
+    setDetail(null);
+    setProgress(null);
     setStatus("listening");
     engine.start();
   }, [status]);
 
-  return { status, interim, error, supported, toggle };
+  return { status, interim, error, progress, detail, supported, toggle };
 }
 
 export function createNativeEngine(events: SpeechEngineEvents): SpeechEngine {

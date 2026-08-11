@@ -122,22 +122,53 @@ export function LinesPage() {
             {(speech.status === "listening" ||
               speech.status === "transcribing" ||
               speech.error) && (
-              <div className="flex items-center gap-2 border-t border-white/10 bg-black/20 px-4 py-2 text-xs text-zinc-400">
-                <span
-                  className={
-                    speech.status === "listening" || speech.status === "transcribing"
-                      ? "h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
-                      : "h-2 w-2 shrink-0 rounded-full bg-rose-500/60"
-                  }
-                  aria-hidden="true"
-                />
-                {speech.error
-                  ? speech.error
-                  : speech.status === "transcribing"
-                    ? "Transcribing audio… (first use downloads a small speech model)"
-                    : speech.interim
-                      ? `Listening… "${speech.interim}"`
-                      : "Listening… speak, then click the mic to stop"}
+              <div className="border-t border-white/10 bg-black/20 px-4 py-2 text-xs text-zinc-400">
+                {speech.status === "transcribing" ? (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
+                        aria-hidden="true"
+                      />
+                      <span>{speech.detail ?? "Transcribing audio…"}</span>
+                      {speech.progress !== null && speech.progress < 100 && (
+                        <span className="ml-auto tabular-nums text-zinc-500">
+                          {Math.round(speech.progress)}%
+                        </span>
+                      )}
+                    </div>
+                    {speech.progress !== null && speech.progress < 100 && (
+                      <div
+                        className="h-1 w-full overflow-hidden rounded-full bg-white/10"
+                        role="progressbar"
+                        aria-valuenow={Math.round(speech.progress)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-sky-500 transition-[width]"
+                          style={{ width: `${speech.progress}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        speech.status === "listening"
+                          ? "h-2 w-2 shrink-0 animate-pulse rounded-full bg-rose-500"
+                          : "h-2 w-2 shrink-0 rounded-full bg-rose-500/60"
+                      }
+                      aria-hidden="true"
+                    />
+                    {speech.error
+                      ? speech.error
+                      : speech.interim
+                        ? `Listening… "${speech.interim}"`
+                        : "Listening… speak, then click the mic to stop"}
+                  </div>
+                )}
               </div>
             )}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-black/20 px-4 py-2">
