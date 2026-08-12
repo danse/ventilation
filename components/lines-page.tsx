@@ -258,6 +258,7 @@ export function LinesPage() {
                 e.preventDefault();
                 addLines();
               }}
+              enterKeyHint="done"
               placeholder="Type and press Enter to add a line. Use Shift+Enter for a newline…"
               spellCheck={false}
               className="block min-h-36 w-full resize-y bg-transparent px-4 py-3 text-sm leading-6 text-zinc-100 placeholder-zinc-600 outline-none"
