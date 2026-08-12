@@ -16,7 +16,6 @@ import {
 import { MAX_INPUT_LENGTH, SAMPLE_TEXT, tagTokens } from "@/lib/nlp";
 import { PosStream } from "@/components/pos-stream";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
 function LineCard({
   line,
@@ -68,7 +67,7 @@ function LineCard({
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </label>
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-sky-500 text-xs font-bold text-white">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white/10 text-xs font-semibold text-zinc-400">
             {index + 1}
           </span>
           <span className="text-xs tabular-nums text-zinc-500">
@@ -125,7 +124,7 @@ function DocumentCard({
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/25 hover:bg-white/[0.05]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500 to-emerald-500 text-xs font-bold text-white">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/10 text-xs font-semibold text-zinc-400">
             {index + 1}
           </span>
           <span className="truncate text-sm font-medium text-zinc-200">
@@ -250,15 +249,7 @@ export function LinesPage() {
 
       <main className="mx-auto max-w-6xl px-4 pb-20">
         <section className="pt-8">
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-100">
-            Your lines, tagged
-          </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Each line you add is tagged with parts of speech below, and saved in
-            your browser. Open a line for the full analysis.
-          </p>
-
-          <div className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
             <textarea
               value={draftReady ? draft : ""}
               onChange={(e) => setDraft(e.target.value.slice(0, MAX_INPUT_LENGTH))}
@@ -296,7 +287,7 @@ export function LinesPage() {
                         aria-valuemax={100}
                       >
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-sky-500 transition-[width]"
+                          className="h-full rounded-full bg-violet-500 transition-[width]"
                           style={{ width: `${speech.progress}%` }}
                         />
                       </div>
@@ -336,7 +327,7 @@ export function LinesPage() {
                 <button
                   onClick={addLines}
                   disabled={!draft.trim()}
-                  className="rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Add lines
                 </button>
@@ -370,7 +361,7 @@ export function LinesPage() {
                   }
                   className={
                     speech.status === "listening" || speech.status === "transcribing"
-                      ? "flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-rose-500 to-red-500 px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
+                      ? "flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-500"
                       : "flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-white/25 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
                   }
                 >
@@ -411,10 +402,7 @@ export function LinesPage() {
             </div>
           ) : lines.length === 0 ? (
             <div className="flex flex-col items-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-14 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-sky-500/20 text-zinc-300">
-                <span className="text-lg font-semibold">Aa</span>
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-zinc-200">
+              <h3 className="text-lg font-semibold text-zinc-200">
                 No lines yet
               </h3>
               <p className="mt-1 max-w-sm text-sm text-zinc-500">
@@ -440,7 +428,7 @@ export function LinesPage() {
                 <button
                   onClick={mergeSelectedIntoDocument}
                   disabled={selected.size < 2}
-                  className="mb-3 rounded-lg bg-gradient-to-r from-violet-500 to-sky-500 px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mb-3 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Merge {selected.size} selected into a document
                 </button>
@@ -482,8 +470,6 @@ export function LinesPage() {
             </div>
           </section>
         )}
-
-        <SiteFooter />
       </main>
     </div>
   );

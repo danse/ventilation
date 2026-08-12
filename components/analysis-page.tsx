@@ -8,7 +8,6 @@ import { LINES_KEY, formatLineTimestamp, type StoredLine } from "@/lib/storage";
 import { analyze } from "@/lib/nlp";
 import { OverviewPanel, SentimentPanel } from "@/components/panels";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
 export function AnalysisPage() {
   const searchParams = useSearchParams();
@@ -62,8 +61,6 @@ export function AnalysisPage() {
               <OverviewPanel analysis={analysis} />
               <SentimentPanel analysis={analysis} />
             </section>
-
-            <SiteFooter />
           </>
         )}
       </main>

@@ -13,7 +13,6 @@ import {
 import { analyze } from "@/lib/nlp";
 import { OverviewPanel, SentimentPanel } from "@/components/panels";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
 function EditableTitle({
   document,
@@ -134,8 +133,6 @@ export function DocumentPage() {
               <OverviewPanel analysis={analysis} />
               <SentimentPanel analysis={analysis} />
             </section>
-
-            <SiteFooter />
           </>
         )}
       </main>
