@@ -254,9 +254,11 @@ export function LinesPage() {
               value={draftReady ? draft : ""}
               onChange={(e) => setDraft(e.target.value.slice(0, MAX_INPUT_LENGTH))}
               onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") addLines();
+                if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
+                e.preventDefault();
+                addLines();
               }}
-              placeholder="Type text here. Use a newline to split it into separate lines…"
+              placeholder="Type and press Enter to add a line. Use Shift+Enter for a newline…"
               spellCheck={false}
               className="block min-h-36 w-full resize-y bg-transparent px-4 py-3 text-sm leading-6 text-zinc-100 placeholder-zinc-600 outline-none"
             />
